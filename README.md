@@ -1,5 +1,7 @@
 # Intrinsic image popularity Assessment
 
+[简体中文版 Simplified Chinese version](README_zh-cn.md)
+
 This is a PyTorch implementation of the paper [Intrinsic Image Popularity Assessment](https://arxiv.org/abs/1907.01985).
 
 This work can quantitatively predict how much traction an image will get on Instagram. 
