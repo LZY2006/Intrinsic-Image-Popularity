@@ -10,7 +10,7 @@ import time
 import pickle
 # from tqdm import tqdm
 import win32ui
-# import sys
+import sys
 
 # cv2.setNumThreads(16)
 
@@ -66,21 +66,16 @@ def main():
     
 
     # 用cv2读取视频
-    path = r"C:\Users\zdwxx\Videos\2020-09-20 11-22-08.mp4"
     print("请选择一个视频：")
-##    while True:
-##        dlg = win32ui.CreateFileDialog(1)
-##        if dlg.DoModal() == 2:
-##            sys.exit()
-##        path = dlg.GetPathName()
-##        if os.path.exists(path):
-##            break
-##        else:
-##            print("文件似乎不存在，请再次选择。")
-    
-##    path = input("请输入路径：")
-
-    # path = r"C:\Users\zdwxx\Videos\2020-09-20 11-22-08.mp4"
+    while True:
+        dlg = win32ui.CreateFileDialog(1)
+        if dlg.DoModal() == 2:
+            sys.exit()
+        path = dlg.GetPathName()
+        if os.path.exists(path):
+            break
+        else:
+            print("文件似乎不存在，请再次选择。")
 
     Video = cv2.VideoCapture(path)
     assert Video.isOpened()
@@ -133,8 +128,8 @@ def main():
     with open(path.split("\\")[-1]+"_fiscs.pkl", "wb") as f:
         pickle.dump(fiscs, f)
     print("全部完成。")
-##    input("请按回车键继续. . .")
-    # sys.exit()
+    input("请按回车键继续. . .")
+    sys.exit()
 
 if __name__ == "__main__":
     try:

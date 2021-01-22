@@ -7,9 +7,8 @@ import torch
 import torchvision.models
 import torchvision.transforms as transforms
 from PIL import Image
-##from pprint import pprint
 from tqdm import tqdm
-##import sys
+import sys
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -75,7 +74,7 @@ def main():
         if filepath.endswith(".jpg") or filepath.endswith(".png"):
             image = Image.open(filepath)
             prediction = predict(image, model)
-##            print("image:", filepath, "score:", prediction)
+            print("image:", filepath, "score:", prediction)
             fpsc.append([filepath, prediction])
 
     # fpsc = [['faces/00001_0.jpg', 1.0490654706954956], ['faces/00002_0.jpg', 1.0693581104278564], ['faces/00003_0.jpg', 1.1973750591278076], ['faces/00004_0.jpg', 1.1499651670455933], ['faces/00005_0.jpg', 1.085140347480774], ['faces/00006_0.jpg', 1.2823302745819092], ['faces/00007_0.jpg', 1.152990698814392],
@@ -110,15 +109,10 @@ def main():
 
 if __name__ == "__main__":
     try:
-        # import time
-        # b = time.time()
         main()
         input("请按回车键继续. . .")
-        # a = time.time()
-        # print(a - b)
     except KeyboardInterrupt:
         pass
-##        sys.exit()
     except Exception as e:
         print("错误")
         print(repr(e))
