@@ -9,18 +9,30 @@ from PIL import Image
 import time
 import pickle
 # from tqdm import tqdm
+import win32ui
+# import sys
+
+# cv2.setNumThreads(16)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+if not os.path.exists(".\\goods"):
+    os.mkdir("goods")
+
+if torch.cuda.is_available():
+    print("Using backend CUDA")
+else:
+    print("Using backend CPU")
+
 
 def prepare_image(image):
-    if image.mode != 'RGB':
-        image = image.convert("RGB")
+    # if image.mode != 'RGB':
+    #     image = image.convert("RGB")
     Transform = transforms.Compose([
-        transforms.Resize([224, 224]),
+        # transforms.Resize([224, 224]),
         transforms.ToTensor(),
     ])
-    image = Transform(image)
+    image = Transform(image.copy())
     image = image.unsqueeze(0)
     return image.to(device)
 
@@ -42,19 +54,33 @@ def predict(image, model=None):
 def arg(x):
     return x[1]
 
+model = torchvision.models.resnet50()
+# model.avgpool = nn.AdaptiveAvgPool2d(1) # for any size of the input
+model.fc = torch.nn.Linear(in_features=2048, out_features=1)
+model.load_state_dict(torch.load(
+    'model/model-resnet50.pth', map_location=device))
+model.eval().to(device)
 
-if __name__ == "__main__":
+def main():
 
-    model = torchvision.models.resnet50()
-    # model.avgpool = nn.AdaptiveAvgPool2d(1) # for any size of the input
-    model.fc = torch.nn.Linear(in_features=2048, out_features=1)
-    model.load_state_dict(torch.load(
-        'model/model-resnet50.pth', map_location=device))
-    model.eval().to(device)
+    
 
     # 用cv2读取视频
-##    path = r"C:\Users\zdwxx\Downloads\183883713_nb2-1-64.flv"
-    path = input("请输入路径：")
+    path = r"C:\Users\zdwxx\Videos\2020-09-20 11-22-08.mp4"
+    print("请选择一个视频：")
+##    while True:
+##        dlg = win32ui.CreateFileDialog(1)
+##        if dlg.DoModal() == 2:
+##            sys.exit()
+##        path = dlg.GetPathName()
+##        if os.path.exists(path):
+##            break
+##        else:
+##            print("文件似乎不存在，请再次选择。")
+    
+##    path = input("请输入路径：")
+
+    # path = r"C:\Users\zdwxx\Videos\2020-09-20 11-22-08.mp4"
 
     Video = cv2.VideoCapture(path)
     assert Video.isOpened()
@@ -70,21 +96,31 @@ if __name__ == "__main__":
             count+=1
             continue
         try:
-            frame_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            pframe = Image.fromarray(frame_RGB)
+            oframe = frame.copy()
+            # frame = cv2.cuda_GpuMat(frame)
+            # frame = cv2.cuda.resize(frame, (224,224),interpolation=cv2.INTER_LINEAR)
+            # frame = frame.download()
+            frame = cv2.resize(frame,(224,224),interpolation=cv2.INTER_LINEAR)
+            frame_RGB = frame[: , : , ::-1]
+
+            # frame_RGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             
-            score = predict(pframe, model)
+            # pframe = Image.fromarray(frame_RGB)
+            
+            score = predict(frame_RGB, model)
             fiscs.append([count, score])
     ##        print("frame:", count, "score:", score)
             if score >= best - 0.5 or score >= 4:
                 if score > best:
                     best = score
-                    save_path = "fucking_goods/"+path.split("\\")[-1]+"_"+str(count)+".png"
-                    pframe.save(save_path)
-                cv2.imshow('img', frame)
-                cv2.waitKey(100)
+                    save_path = "goods/"+path.split("\\")[-1]+"_"+str(count)+".png"
+                    # cv2.imwrite(save_path, oframe,)
+                    cv2.imencode('.png', oframe)[1].tofile(save_path)
+                    # frame_RGB.save(save_path)
+                cv2.imshow('img', oframe)
+                cv2.waitKey(1)
                 
-                print("frame:", count, "score:", score)
+            print("frame:", count, "score:", score)
                 
         except Exception as exc:
             print(exc)
@@ -96,3 +132,22 @@ if __name__ == "__main__":
     #pprint(fiscs)
     with open(path.split("\\")[-1]+"_fiscs.pkl", "wb") as f:
         pickle.dump(fiscs, f)
+    print("全部完成。")
+##    input("请按回车键继续. . .")
+    # sys.exit()
+
+if __name__ == "__main__":
+    try:
+        import time
+        b = time.time()
+        main()
+        a = time.time()
+        print(a - b)
+    except KeyboardInterrupt:
+        # sys.exit()
+        pass
+    except Exception as e:
+        print("错误")
+        print(repr(e))
+        input("请按回车键继续. . .")
+        # sys.exit()
